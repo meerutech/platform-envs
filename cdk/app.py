@@ -6,6 +6,7 @@ from aws_cdk import (
 )
 
 from configparser import ConfigParser
+from os import getenv
 
 config = ConfigParser()
 config.read('config.ini')
@@ -15,20 +16,26 @@ class SSMParameterEnvAutomation(core.Stack):
 
     def __init__(self, scope: core.Stack, id: str, **kwargs):
         super().__init__(scope, id, **kwargs)
-
-        self.parameter = ssm.StringParameter(self, "test", string_value='TEST', parameter_name='TEST')
         
-        for main_key in config:
-            if 'DEFAULT' not in main_key:
-                print("==> {}".format(main_key))
-                for parameter in config[main_key]:
-                    print("====> {}/{} == {}".format(main_key,parameter,config[main_key][parameter]))
+        count = 0
+        for parameter in config[my_env]:
+            
+            parameter_name = "/{}/{}".format(my_env, parameter)
+            parameter_value = config[my_env][parameter]
+            
+            self.parameter = ssm.StringParameter(
+                self, "Parameter{}".format(count),
+                string_value=parameter_value, 
+                parameter_name=parameter_name
+            )
+            
+            count += 1
 
 
-for main_key in config:
-    if 'DEFAULT' not in main_key:
-        app = core.App()
-        _env = core.Environment(account=config[main_key]['account_number'], region=config[main_key]['region'])
-        SSMParameterEnvAutomation(app, "automation-env-vars-{}".format(config[main_key]['account_number'],config[main_key]['region']), env=_env)
+my_env = getenv('MY_ENV')
+print(my_env)
+app = core.App()
+_env = core.Environment(account=config[my_env]['account_number'], region=config[my_env]['region'])
+SSMParameterEnvAutomation(app, "automation-env-vars-{}".format(config[my_env]['account_number'],config[my_env]['region']), env=_env)
     
 app.synth()
