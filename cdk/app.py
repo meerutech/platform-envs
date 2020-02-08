@@ -33,7 +33,6 @@ class SSMParameterEnvAutomation(core.Stack):
 
 
 my_env = getenv('MY_ENV')
-print(my_env)
 app = core.App()
 _env = core.Environment(account=config[my_env]['account_number'], region=config[my_env]['region'])
 SSMParameterEnvAutomation(app, "automation-env-vars-{}".format(config[my_env]['account_number'],config[my_env]['region']), env=_env)
